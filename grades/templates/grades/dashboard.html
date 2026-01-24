@@ -1,0 +1,360 @@
+{% block content %}
+<style>
+    /* ----- General ----- */
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #f0f4f8, #d9e2ec);
+        color: #1f2937;
+        margin: 0;
+        padding: 20px;
+    }
+
+    h1 {
+        text-align: center;
+        font-size: 2.5rem;
+        margin-bottom: 30px;
+        background: linear-gradient(to right, #2563eb, #3b82f6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+        margin-bottom: 15px;
+        color: #1e40af;
+    }
+
+    /* ----- Logout Button ----- */
+    .logout-button {
+        background: linear-gradient(135deg, #f87171, #ef4444);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .logout-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    /* ----- Grades Card Container ----- */
+    #grades-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        justify-content: center;
+    }
+
+    /* ----- Card Style for Each Subject ----- */
+    #grades-container>h2 {
+        width: 100%;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+        margin-bottom: 20px;
+        background: #ffffff;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    table:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+    }
+
+    thead {
+        background: linear-gradient(90deg, #2563eb, #3b82f6);
+        color: white;
+    }
+
+    th,
+    td {
+        text-align: left;
+        padding: 12px 15px;
+        font-size: 0.95rem;
+    }
+
+    tbody tr {
+        border-bottom: 1px solid #e5e7eb;
+        transition: background-color 0.2s ease;
+    }
+
+    tbody tr:hover {
+        background-color: #f1f5f9;
+    }
+
+    .weight,
+    .grade {
+        font-weight: 600;
+    }
+
+    tfoot {
+        background-color: #f9fafb;
+        font-weight: bold;
+    }
+
+    /* ----- Error Message ----- */
+    p[style*="color:red"] {
+        background: #fee2e2;
+        color: #b91c1c;
+        padding: 10px 15px;
+        border-radius: 10px;
+        text-align: center;
+        margin-bottom: 20px;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* ----- Mobile Responsive ----- */
+    @media (max-width: 768px) {
+        #grades-container {
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        table,
+        thead,
+        tbody,
+        th,
+        td,
+        tr {
+            display: block;
+        }
+
+        thead tr {
+            display: none;
+        }
+
+        tbody tr {
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e5e7eb;
+            background: #fefefe;
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        tbody td {
+            padding: 8px 12px;
+            text-align: right;
+            position: relative;
+            font-size: 0.9rem;
+        }
+
+        tbody td::before {
+            content: attr(data-label);
+            position: absolute;
+            left: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+
+        tfoot td {
+            display: block;
+            text-align: right;
+        }
+    }
+
+    .predict-box {
+        background: #f8fafc;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 30px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .predict-box label {
+        display: flex;
+        flex-direction: column;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #374151;
+    }
+
+    .predict-box input {
+        margin-top: 4px;
+        padding: 6px 8px;
+        border-radius: 8px;
+        border: 1px solid #cbd5f5;
+        width: 110px;
+    }
+
+    .predict-button {
+        background: linear-gradient(135deg, #22c55e, #16a34a);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 10px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .predict-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .prediction-result {
+        width: 100%;
+        font-weight: 600;
+        margin-top: 8px;
+        color: #065f46;
+    }
+</style>
+
+<h1>Grades Dashboard</h1>
+
+{% if error %}
+<p style="color:red">{{ error }}</p>
+{% endif %}
+<form method="POST" action="{% url 'logout' %}" style="display:inline;">
+    {% csrf_token %}
+    <button type="submit" class="logout-button">Logout</button>
+</form>
+
+<div id="grades-container">
+    {% for subject, grades in grades_by_subject.items %}
+    <h2>{{ subject }}</h2>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Datum</th>
+                <th>Tema</th>
+                <th>Vaha</th>
+                <th>Vysledek</th>
+                <th>Slovni hodnoceni</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for g in grades %}
+            <tr>
+                <td data-label="Datum">{{ g.Datum }}</td>
+                <td data-label="Tema">{{ g.Tema }}</td>
+                <td class="weight" data-label="Vaha">{{ g.Vaha }}</td>
+                <td class="grade" data-label="Vysledek">{{ g.Vysledek }}</td>
+                <td data-label="Slovni hodnoceni">{{ g.Slovni_hodnoceni }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="4"><strong>Weighted Average:</strong></td>
+                <td class="average">Calculating...</td>
+            </tr>
+        </tfoot>
+    </table>
+    <div class="predict-box">
+        <label>
+            Desired average:
+            <input type="number" step="0.01" class="desired-average">
+        </label>
+
+        <label>
+            Expected grade:
+            <input type="number" step="0.1" class="future-grade">
+        </label>
+
+        <label>
+            Weight:
+            <input type="number" step="0.1" class="future-weight">
+        </label>
+
+        <button class="predict-button">Predict</button>
+
+        <p class="prediction-result"></p>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    document.querySelectorAll("#grades-container table").forEach(table => {
+        let weightedSum = 0;
+        let totalWeight = 0;
+
+        table.querySelectorAll("tbody tr").forEach(row => {
+            const grade = parseFloat(row.querySelector(".grade").textContent);
+            const weight = parseFloat(
+                row.querySelector(".weight").textContent.replace(",", ".")
+            );
+
+            if (!isNaN(grade) && !isNaN(weight)) {
+                weightedSum += grade * weight;
+                totalWeight += weight;
+            }
+        });
+
+        const averageCell = table.querySelector(".average");
+        const currentAverage = totalWeight > 0 ? weightedSum / totalWeight : null;
+        averageCell.textContent = currentAverage ? currentAverage.toFixed(2) : "N/A";
+
+      
+        const box = table.nextElementSibling;
+        if (!box || !box.classList.contains("predict-box")) return;
+
+        const button = box.querySelector(".predict-button");
+        const result = box.querySelector(".prediction-result");
+
+        button.addEventListener("click", () => {
+            const desiredAverage = parseFloat(
+                box.querySelector(".desired-average").value
+            );
+            const futureGrade = parseFloat(
+                box.querySelector(".future-grade").value
+            );
+            const futureWeight = parseFloat(
+                box.querySelector(".future-weight").value
+            );
+
+            if (
+                isNaN(desiredAverage) ||
+                isNaN(futureGrade) ||
+                isNaN(futureWeight) ||
+                !currentAverage
+            ) {
+                result.textContent = "Please fill all fields.";
+                return;
+            }
+
+        
+            const requiredRealAverage = Math.max(desiredAverage - 0.5, 1);
+
+            const newWeightedSum =
+                weightedSum + futureGrade * futureWeight;
+            const newTotalWeight =
+                totalWeight + futureWeight;
+
+            const resultingAverage =
+                newWeightedSum / newTotalWeight;
+
+            if (resultingAverage >= requiredRealAverage) {
+                result.textContent =
+                    `✅ With this grade, you'll reach a final ${desiredAverage} (real avg ${resultingAverage.toFixed(2)})`;
+            } else {
+                result.textContent =
+                    `❌ This gives ${resultingAverage.toFixed(2)} — not enough for final ${desiredAverage}`;
+            }
+        });
+    });
+
+});
+</script>
+
+
+{% endblock %}
