@@ -2,126 +2,282 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SKOLAONLINE</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@400&family=Cormorant+Garamond:wght@400&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
     <style>
-        /* ----- Full Page Centering ----- */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --canvas:          #000000;
+            --surface-card:    #141414;
+            --hairline:        #262626;
+            --hairline-strong: #3a3a3a;
+            --on-dark:         #ffffff;
+            --body:            #cccccc;
+            --muted:           #999999;
+            --muted-soft:      #666666;
+            --link:            #c3d9f3;
+
+            --font-display: 'Saira Condensed', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            --font-text:    'Cormorant Garamond', Garamond, "Times New Roman", serif;
+            --font-mono:    'JetBrains Mono', ui-monospace, "SF Mono", "Cascadia Mono", monospace;
+        }
+
         html, body {
             height: 100%;
-            margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #f0f4f8, #d9e2ec);
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            background: var(--canvas);
+            color: var(--on-dark);
+            font-family: var(--font-text);
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* ----- Login Card ----- */
-        .login-card {
-            background: #ffffff;
-            padding: 40px 30px;
-            border-radius: 20px;
-            box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* ── Nav ── */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .wordmark {
+            font-family: var(--font-display);
+            font-size: 14px;
+            font-weight: 400;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            color: var(--on-dark);
+            line-height: 1;
+            text-decoration: none;
+        }
+
+        /* ── Main ── */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 56px 24px 64px;
+        }
+
+        /* ── Hero text ── */
+        .hero-label {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--muted);
+            line-height: 1.4;
+            margin-bottom: 48px;
+            text-align: center;
+        }
+
+        .display-md {
+            font-family: var(--font-display);
+            font-size: 32px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--on-dark);
+            line-height: 1.2;
+            text-align: center;
+            margin-bottom: 64px;
+        }
+
+        /* ── Form ── */
+        .form-wrap {
             width: 100%;
             max-width: 400px;
-            text-align: center;
             display: flex;
             flex-direction: column;
-            gap: 25px;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            gap: 40px;
         }
 
-        .login-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 18px 36px rgba(0,0,0,0.15);
-        }
-
-        /* ----- Heading ----- */
-        h1 {
-            font-size: 2rem;
-            margin: 0;
-            background: linear-gradient(to right, #2563eb, #3b82f6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        /* ----- Form ----- */
-        form {
+        .field {
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 0;
+        }
+
+        .field label {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--muted);
+            line-height: 1.4;
+            margin-bottom: 12px;
+        }
+
+        .field input[type="text"],
+        .field input[type="password"] {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid var(--hairline-strong);
+            color: var(--on-dark);
+            font-family: var(--font-text);
+            font-size: 16px;
+            font-weight: 400;
+            line-height: 1.5;
+            padding: 12px 0;
+            height: 44px;
             width: 100%;
+            outline: none;
+            transition: border-color 0.2s;
         }
 
-        label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 5px;
-            color: #1f2937;
-            text-align: left;
+        .field input[type="text"]::placeholder,
+        .field input[type="password"]::placeholder {
+            color: var(--muted-soft);
         }
 
+        .field input[type="text"]:focus,
+        .field input[type="password"]:focus {
+            border-bottom-color: var(--on-dark);
+        }
+
+        /* ── Submit ── */
+        .btn-submit {
+            margin-top: 16px;
+            background: transparent;
+            color: var(--on-dark);
+            border: 1px solid var(--on-dark);
+            border-radius: 9999px;
+            padding: 14px 32px;
+            height: 44px;
+            font-family: var(--font-mono);
+            font-size: 14px;
+            font-weight: 400;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            line-height: 1;
+            cursor: pointer;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .btn-submit:hover {
+            background: var(--on-dark);
+            color: var(--canvas);
+        }
+
+        /* ── Error ── */
+        .error-msg {
+            font-family: var(--font-text);
+            font-size: 14px;
+            color: var(--muted);
+            border: 1px solid var(--hairline);
+            padding: 12px 16px;
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        /* ── Footer ── */
+        footer {
+            border-top: 1px solid var(--hairline);
+            padding: 32px 24px;
+            text-align: center;
+        }
+
+        .footer-copy {
+            font-family: var(--font-text);
+            font-size: 13px;
+            font-weight: 400;
+            color: var(--muted-soft);
+            line-height: 1.5;
+        }
+
+        /* ── Django form widget overrides ── */
         input[type="text"],
         input[type="password"] {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid var(--hairline-strong);
+            color: var(--on-dark);
+            font-family: var(--font-text);
+            font-size: 16px;
+            font-weight: 400;
+            line-height: 1.5;
+            padding: 12px 0;
+            height: 44px;
             width: 100%;
-            padding: 12px 15px;
-            border: 1px solid #cbd5e1;
-            border-radius: 12px;
-            font-size: 1rem;
-            transition: border 0.2s ease, box-shadow 0.2s ease;
+            outline: none;
         }
 
         input[type="text"]:focus,
         input[type="password"]:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 6px rgba(59,130,246,0.3);
+            border-bottom-color: var(--on-dark);
         }
 
-        button[type="submit"] {
-            background: linear-gradient(135deg, #2563eb, #3b82f6);
-            color: white;
-            border: none;
-            padding: 14px;
-            font-size: 1rem;
-            font-weight: bold;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        button[type="submit"]:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-        }
-
-        /* ----- Responsive ----- */
-        @media (max-width: 480px) {
-            .login-card {
-                padding: 30px 20px;
-                border-radius: 16px;
+        /* ── Responsive ── */
+        @media (max-width: 768px) {
+            .display-md {
+                font-size: 24px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="login-card">
-        <h1>Login with SkolaOnline</h1>
 
-        <form method="post">
-            {% csrf_token %}
+    <nav class="nav">
+        <span class="wordmark">Skolaonline</span>
+    </nav>
 
-            <div>
-                {{ form.sol_username.label_tag }}
-                {{ form.sol_username }}
-            </div>
+    <main>
+        <p class="hero-label">Academic Record System</p>
+        <h1 class="display-md">Access Your Record</h1>
 
-            <div>
-                {{ form.sol_password.label_tag }}
-                {{ form.sol_password }}
-            </div>
+        <div class="form-wrap">
+            {% if form.errors %}
+            <div class="error-msg">Invalid credentials. Verify and retry.</div>
+            {% endif %}
 
-            <button type="submit">Login</button>
-        </form>
-    </div>
+            <form method="post">
+                {% csrf_token %}
+
+                <div style="display:flex;flex-direction:column;gap:40px;">
+                    <div class="field">
+                        {{ form.sol_username.label_tag }}
+                        {{ form.sol_username }}
+                    </div>
+
+                    <div class="field">
+                        {{ form.sol_password.label_tag }}
+                        {{ form.sol_password }}
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit" style="margin-top:48px;">Enter</button>
+            </form>
+        </div>
+    </main>
+
+    <footer>
+        <p class="footer-copy">&copy; Skolaonline Grades &mdash; Unauthorized access prohibited.</p>
+    </footer>
+
 </body>
 </html>

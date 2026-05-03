@@ -1,360 +1,741 @@
-{% block content %}
-<style>
-    /* ----- General ----- */
-    body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background: linear-gradient(135deg, #f0f4f8, #d9e2ec);
-        color: #1f2937;
-        margin: 0;
-        padding: 20px;
-    }
-
-    h1 {
-        text-align: center;
-        font-size: 2.5rem;
-        margin-bottom: 30px;
-        background: linear-gradient(to right, #2563eb, #3b82f6);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-
-    h2 {
-        font-size: 1.5rem;
-        margin-bottom: 15px;
-        color: #1e40af;
-    }
-
-    /* ----- Logout Button ----- */
-    .logout-button {
-        background: linear-gradient(135deg, #f87171, #ef4444);
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 10px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .logout-button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-    }
-
-    /* ----- Grades Card Container ----- */
-    #grades-container {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 20px;
-        justify-content: center;
-    }
-
-    /* ----- Card Style for Each Subject ----- */
-    #grades-container>h2 {
-        width: 100%;
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
-        margin-bottom: 20px;
-        background: #ffffff;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    table:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
-    }
-
-    thead {
-        background: linear-gradient(90deg, #2563eb, #3b82f6);
-        color: white;
-    }
-
-    th,
-    td {
-        text-align: left;
-        padding: 12px 15px;
-        font-size: 0.95rem;
-    }
-
-    tbody tr {
-        border-bottom: 1px solid #e5e7eb;
-        transition: background-color 0.2s ease;
-    }
-
-    tbody tr:hover {
-        background-color: #f1f5f9;
-    }
-
-    .weight,
-    .grade {
-        font-weight: 600;
-    }
-
-    tfoot {
-        background-color: #f9fafb;
-        font-weight: bold;
-    }
-
-    /* ----- Error Message ----- */
-    p[style*="color:red"] {
-        background: #fee2e2;
-        color: #b91c1c;
-        padding: 10px 15px;
-        border-radius: 10px;
-        text-align: center;
-        margin-bottom: 20px;
-        max-width: 600px;
-        margin-left: auto;
-        margin-right: auto;
-    }
-
-    /* ----- Mobile Responsive ----- */
-    @media (max-width: 768px) {
-        #grades-container {
-            flex-direction: column;
-            gap: 15px;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SKOLAONLINE — Grades</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@400&family=Cormorant+Garamond:wght@400&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
-        table,
-        thead,
-        tbody,
-        th,
-        td,
-        tr {
-            display: block;
+        :root {
+            --canvas:          #000000;
+            --surface-soft:    #0d0d0d;
+            --surface-card:    #141414;
+            --surface-elevated:#1f1f1f;
+            --hairline:        #262626;
+            --hairline-strong: #3a3a3a;
+            --on-dark:         #ffffff;
+            --body:            #cccccc;
+            --body-strong:     #e6e6e6;
+            --muted:           #999999;
+            --muted-soft:      #666666;
+            --link:            #c3d9f3;
+
+            --font-display: 'Saira Condensed', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            --font-text:    'Cormorant Garamond', Garamond, "Times New Roman", serif;
+            --font-mono:    'JetBrains Mono', ui-monospace, "SF Mono", "Cascadia Mono", monospace;
+
+            --section: 120px;
+        }
+
+        html {
+            background: var(--canvas);
+            color: var(--on-dark);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            font-family: var(--font-text);
+            background: var(--canvas);
+            min-height: 100vh;
+        }
+
+        /* ── Top Nav ── */
+        .top-nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            height: 56px;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            padding: 0 40px;
+            background: var(--canvas);
+            border-bottom: 1px solid var(--hairline);
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-center {
+            text-align: center;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .wordmark {
+            font-family: var(--font-display);
+            font-size: 14px;
+            font-weight: 400;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            color: var(--on-dark);
+            line-height: 1;
+            text-decoration: none;
+        }
+
+        .nav-label {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--muted);
+            line-height: 1.4;
+        }
+
+        /* ── Logout button ── */
+        .btn-logout {
+            background: transparent;
+            color: var(--on-dark);
+            border: 1px solid var(--hairline-strong);
+            border-radius: 9999px;
+            padding: 8px 20px;
+            height: 34px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: border-color 0.2s, color 0.2s;
+        }
+
+        .btn-logout:hover {
+            border-color: var(--on-dark);
+            color: var(--on-dark);
+        }
+
+        /* ── Hero band ── */
+        .hero {
+            padding: var(--section) 40px 80px;
+            border-bottom: 1px solid var(--hairline);
+        }
+
+        .hero-caption {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--muted);
+            line-height: 1.4;
+            margin-bottom: 24px;
+        }
+
+        .display-xl {
+            font-family: var(--font-display);
+            font-size: 64px;
+            font-weight: 400;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--on-dark);
+            line-height: 1.1;
+        }
+
+        /* ── Error ── */
+        .error-band {
+            padding: 32px 40px;
+            border-bottom: 1px solid var(--hairline);
+        }
+
+        .error-msg {
+            font-family: var(--font-text);
+            font-size: 16px;
+            font-weight: 400;
+            color: var(--muted);
+            border: 1px solid var(--hairline);
+            padding: 16px 24px;
+            max-width: 640px;
+        }
+
+        /* ── Content ── */
+        .content {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 40px;
+        }
+
+        /* ── Subject section ── */
+        .subject-section {
+            padding-top: var(--section);
+            padding-bottom: 64px;
+            border-bottom: 1px solid var(--hairline);
+        }
+
+        .subject-section:last-child {
+            border-bottom: none;
+        }
+
+        .subject-header {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: flex-end;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .subject-name {
+            font-family: var(--font-display);
+            font-size: 32px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--on-dark);
+            line-height: 1.2;
+        }
+
+        .subject-average-wrap {
+            text-align: right;
+        }
+
+        .average-label {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--muted);
+            line-height: 1.4;
+            margin-bottom: 4px;
+        }
+
+        .average-value {
+            font-family: var(--font-display);
+            font-size: 48px;
+            font-weight: 400;
+            letter-spacing: 3px;
+            color: var(--on-dark);
+            line-height: 1.1;
+        }
+
+        /* ── Grades table ── */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 48px;
         }
 
         thead tr {
-            display: none;
+            border-bottom: 1px solid var(--hairline-strong);
+        }
+
+        th {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--muted);
+            line-height: 1.4;
+            padding: 0 0 16px;
+            text-align: left;
+        }
+
+        th:not(:first-child) {
+            padding-left: 24px;
         }
 
         tbody tr {
-            margin-bottom: 15px;
-            border-bottom: 2px solid #e5e7eb;
-            background: #fefefe;
-            border-radius: 10px;
-            padding: 10px;
+            border-bottom: 1px solid var(--hairline);
         }
 
-        tbody td {
-            padding: 8px 12px;
-            text-align: right;
-            position: relative;
-            font-size: 0.9rem;
+        tbody tr:hover {
+            background: var(--surface-soft);
         }
 
-        tbody td::before {
-            content: attr(data-label);
-            position: absolute;
-            left: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.8rem;
-            color: #6b7280;
+        td {
+            font-family: var(--font-text);
+            font-size: 16px;
+            font-weight: 400;
+            color: var(--body);
+            line-height: 1.5;
+            padding: 20px 0;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        td:not(:first-child) {
+            padding-left: 24px;
+        }
+
+        td.grade {
+            font-family: var(--font-display);
+            font-size: 20px;
+            font-weight: 400;
+            letter-spacing: 1px;
+            color: var(--on-dark);
+        }
+
+        td.weight {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            font-weight: 400;
+            letter-spacing: 1px;
+            color: var(--muted);
+        }
+
+        td.date {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            font-weight: 400;
+            letter-spacing: 1px;
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        tfoot tr {
+            background: var(--surface-card);
+            border-top: 1px solid var(--hairline-strong);
         }
 
         tfoot td {
-            display: block;
-            text-align: right;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--muted);
+            padding: 16px 0;
         }
-    }
 
-    .predict-box {
-        background: #f8fafc;
-        border: 1px solid #e5e7eb;
-        border-radius: 12px;
-        padding: 15px;
-        margin-bottom: 30px;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        align-items: center;
-    }
+        tfoot td.average {
+            font-family: var(--font-display);
+            font-size: 20px;
+            font-weight: 400;
+            letter-spacing: 1px;
+            color: var(--on-dark);
+            text-transform: none;
+            letter-spacing: 0;
+        }
 
-    .predict-box label {
-        display: flex;
-        flex-direction: column;
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: #374151;
-    }
+        /* ── Predict box ── */
+        .predict-box {
+            background: var(--surface-card);
+            padding: 32px;
+            margin-bottom: 0;
+        }
 
-    .predict-box input {
-        margin-top: 4px;
-        padding: 6px 8px;
-        border-radius: 8px;
-        border: 1px solid #cbd5f5;
-        width: 110px;
-    }
+        .predict-title {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--muted);
+            line-height: 1.4;
+            margin-bottom: 32px;
+        }
 
-    .predict-button {
-        background: linear-gradient(135deg, #22c55e, #16a34a);
-        color: white;
-        border: none;
-        padding: 8px 16px;
-        border-radius: 10px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
+        .predict-fields {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+            align-items: flex-end;
+            margin-bottom: 32px;
+        }
 
-    .predict-button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-    }
+        .predict-field {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
 
-    .prediction-result {
-        width: 100%;
-        font-weight: 600;
-        margin-top: 8px;
-        color: #065f46;
-    }
-</style>
+        .predict-field label {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--muted);
+            line-height: 1.4;
+            margin-bottom: 10px;
+        }
 
-<h1>Grades Dashboard</h1>
+        .predict-field input {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid var(--hairline-strong);
+            color: var(--on-dark);
+            font-family: var(--font-text);
+            font-size: 16px;
+            font-weight: 400;
+            line-height: 1.5;
+            padding: 10px 0;
+            height: 44px;
+            width: 140px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
 
-{% if error %}
-<p style="color:red">{{ error }}</p>
-{% endif %}
-<form method="POST" action="{% url 'logout' %}" style="display:inline;">
-    {% csrf_token %}
-    <button type="submit" class="logout-button">Logout</button>
-</form>
+        .predict-field input:focus {
+            border-bottom-color: var(--on-dark);
+        }
 
-<div id="grades-container">
-    {% for subject, grades in grades_by_subject.items %}
-    <h2>{{ subject }}</h2>
-    <table border="1">
-        <thead>
-            <tr>
-                <th>Datum</th>
-                <th>Tema</th>
-                <th>Vaha</th>
-                <th>Vysledek</th>
-                <th>Slovni hodnoceni</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for g in grades %}
-            <tr>
-                <td data-label="Datum">{{ g.Datum }}</td>
-                <td data-label="Tema">{{ g.Tema }}</td>
-                <td class="weight" data-label="Vaha">{{ g.Vaha }}</td>
-                <td class="grade" data-label="Vysledek">{{ g.Vysledek }}</td>
-                <td data-label="Slovni hodnoceni">{{ g.Slovni_hodnoceni }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-        <tfoot>
-            <tr>
-                <td colspan="4"><strong>Weighted Average:</strong></td>
-                <td class="average">Calculating...</td>
-            </tr>
-        </tfoot>
-    </table>
-    <div class="predict-box">
-        <label>
-            Desired average:
-            <input type="number" step="0.01" class="desired-average">
-        </label>
+        .predict-field input::placeholder {
+            color: var(--muted-soft);
+        }
 
-        <label>
-            Expected grade:
-            <input type="number" step="0.1" class="future-grade">
-        </label>
+        .btn-predict {
+            background: transparent;
+            color: var(--on-dark);
+            border: 1px solid var(--on-dark);
+            border-radius: 9999px;
+            padding: 14px 32px;
+            height: 44px;
+            font-family: var(--font-mono);
+            font-size: 14px;
+            font-weight: 400;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            transition: background 0.2s, color 0.2s;
+        }
 
-        <label>
-            Weight:
-            <input type="number" step="0.1" class="future-weight">
-        </label>
+        .btn-predict:hover {
+            background: var(--on-dark);
+            color: var(--canvas);
+        }
 
-        <button class="predict-button">Predict</button>
+        .prediction-result {
+            font-family: var(--font-text);
+            font-size: 16px;
+            font-weight: 400;
+            color: var(--body-strong);
+            line-height: 1.5;
+            min-height: 24px;
+        }
 
-        <p class="prediction-result"></p>
+        .prediction-result:empty {
+            display: none;
+        }
+
+        /* ── Footer ── */
+        footer {
+            border-top: 1px solid var(--hairline);
+            padding: 64px 40px;
+            margin-top: var(--section);
+        }
+
+        .footer-inner {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .footer-wordmark {
+            font-family: var(--font-display);
+            font-size: 14px;
+            font-weight: 400;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .footer-copy {
+            font-family: var(--font-text);
+            font-size: 13px;
+            font-weight: 400;
+            color: var(--muted-soft);
+            line-height: 1.5;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 768px) {
+            .top-nav {
+                padding: 0 20px;
+            }
+
+            .nav-label {
+                display: none;
+            }
+
+            .hero {
+                padding: 64px 20px 48px;
+            }
+
+            .display-xl {
+                font-size: 32px;
+                letter-spacing: 2px;
+            }
+
+            .content {
+                padding: 0 20px;
+            }
+
+            .subject-section {
+                padding-top: 64px;
+            }
+
+            .subject-header {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .subject-average-wrap {
+                text-align: left;
+            }
+
+            .subject-name {
+                font-size: 24px;
+            }
+
+            .average-value {
+                font-size: 32px;
+            }
+
+            table, thead, tbody, tfoot, th, td, tr {
+                display: block;
+            }
+
+            thead tr {
+                display: none;
+            }
+
+            tbody tr {
+                padding: 16px 0;
+                border-bottom: 1px solid var(--hairline);
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+
+            td {
+                padding: 4px 0;
+            }
+
+            td::before {
+                content: attr(data-label);
+                display: block;
+                font-family: var(--font-mono);
+                font-size: 10px;
+                letter-spacing: 1.5px;
+                text-transform: uppercase;
+                color: var(--muted-soft);
+                margin-bottom: 2px;
+            }
+
+            td:not(:first-child) {
+                padding-left: 0;
+            }
+
+            tfoot td {
+                display: block;
+                text-align: left;
+            }
+
+            tfoot td:not(:first-child) {
+                padding-left: 0;
+            }
+
+            .predict-fields {
+                gap: 24px;
+            }
+
+            .predict-field input {
+                width: 100%;
+            }
+
+            .predict-box {
+                padding: 24px 20px;
+            }
+
+            .error-band {
+                padding: 24px 20px;
+            }
+
+            footer {
+                padding: 48px 20px;
+                margin-top: 64px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ── Top Nav ── -->
+    <nav class="top-nav">
+        <div class="nav-left">
+            <span class="nav-label">Dashboard</span>
+        </div>
+        <div class="nav-center">
+            <span class="wordmark">porg je takovej hajzl</span>
+        </div>
+        <div class="nav-right">
+            <form method="POST" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn-logout">Logout</button>
+            </form>
+        </div>
+    </nav>
+
+    <!-- ── Hero ── -->
+    <section class="hero">
+        <p class="hero-caption">Academic Record</p>
+        <h1 class="display-xl">Grades</h1>
+    </section>
+
+    <!-- ── Error ── -->
+    {% if error %}
+    <div class="error-band">
+        <div class="error-msg">{{ error }}</div>
     </div>
-    {% endfor %}
-</div>
+    {% endif %}
 
-<script>
-document.addEventListener("DOMContentLoaded", () => {
+    <!-- ── Grades ── -->
+    <div class="content">
+        {% for subject, grades in grades_by_subject.items %}
+        <section class="subject-section">
 
-    document.querySelectorAll("#grades-container table").forEach(table => {
-        let weightedSum = 0;
-        let totalWeight = 0;
+            <div class="subject-header">
+                <h2 class="subject-name">{{ subject }}</h2>
+                <div class="subject-average-wrap">
+                    <p class="average-label">Weighted Average</p>
+                    <p class="average-value js-avg" data-subject="{{ forloop.counter }}">—</p>
+                </div>
+            </div>
 
-        table.querySelectorAll("tbody tr").forEach(row => {
-            const grade = parseFloat(row.querySelector(".grade").textContent);
-            const weight = parseFloat(
-                row.querySelector(".weight").textContent.replace(",", ".")
-            );
+            <table data-subject="{{ forloop.counter }}">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Topic</th>
+                        <th>Weight</th>
+                        <th>Grade</th>
+                        <th>Assessment</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for g in grades %}
+                    <tr>
+                        <td class="date" data-label="Date">{{ g.Datum }}</td>
+                        <td data-label="Topic">{{ g.Tema }}</td>
+                        <td class="weight" data-label="Weight">{{ g.Vaha }}</td>
+                        <td class="grade" data-label="Grade">{{ g.Vysledek }}</td>
+                        <td data-label="Assessment">{{ g.Slovni_hodnoceni }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3">Weighted Average</td>
+                        <td class="average" colspan="2">Calculating…</td>
+                    </tr>
+                </tfoot>
+            </table>
 
-            if (!isNaN(grade) && !isNaN(weight)) {
-                weightedSum += grade * weight;
-                totalWeight += weight;
-            }
+            <!-- ── Predict ── -->
+            <div class="predict-box">
+                <p class="predict-title">Grade Predictor</p>
+                <div class="predict-fields">
+                    <div class="predict-field">
+                        <label>Desired Average</label>
+                        <input type="number" step="0.01" class="desired-average" placeholder="e.g. 1.5">
+                    </div>
+                    <div class="predict-field">
+                        <label>Expected Grade</label>
+                        <input type="number" step="0.1" class="future-grade" placeholder="e.g. 2">
+                    </div>
+                    <div class="predict-field">
+                        <label>Weight</label>
+                        <input type="number" step="0.1" class="future-weight" placeholder="e.g. 1">
+                    </div>
+                    <button class="btn-predict">Predict</button>
+                </div>
+                <p class="prediction-result"></p>
+            </div>
+
+        </section>
+        {% endfor %}
+    </div>
+
+    <!-- ── Footer ── -->
+    <footer>
+        <div class="footer-inner">
+            <span class="footer-wordmark">Skolaonline</span>
+            <p class="footer-copy">&copy; Ses kokot.</p>
+        </div>
+    </footer>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+
+        document.querySelectorAll("table[data-subject]").forEach(table => {
+            const sid = table.dataset.subject;
+            let weightedSum = 0;
+            let totalWeight = 0;
+
+            table.querySelectorAll("tbody tr").forEach(row => {
+                const grade  = parseFloat(row.querySelector(".grade").textContent);
+                const weight = parseFloat(row.querySelector(".weight").textContent.replace(",", "."));
+                if (!isNaN(grade) && !isNaN(weight)) {
+                    weightedSum  += grade * weight;
+                    totalWeight  += weight;
+                }
+            });
+
+            const currentAverage = totalWeight > 0 ? weightedSum / totalWeight : null;
+
+            // tfoot cell
+            const avgCell = table.querySelector("tfoot .average");
+            avgCell.textContent = currentAverage ? currentAverage.toFixed(2) : "N/A";
+
+            // hero average
+            const heroAvg = document.querySelector(`.js-avg[data-subject="${sid}"]`);
+            if (heroAvg) heroAvg.textContent = currentAverage ? currentAverage.toFixed(2) : "N/A";
+
+            // predictor
+            const box = table.nextElementSibling;
+            if (!box || !box.classList.contains("predict-box")) return;
+
+            box.querySelector(".btn-predict").addEventListener("click", () => {
+                const desiredAverage = parseFloat(box.querySelector(".desired-average").value);
+                const futureGrade    = parseFloat(box.querySelector(".future-grade").value);
+                const futureWeight   = parseFloat(box.querySelector(".future-weight").value);
+                const result         = box.querySelector(".prediction-result");
+
+                if (isNaN(desiredAverage) || isNaN(futureGrade) || isNaN(futureWeight) || !currentAverage) {
+                    result.textContent = "Fill all fields to compute.";
+                    return;
+                }
+
+                const requiredRealAverage = Math.max(desiredAverage - 0.5, 1);
+                const newWeightedSum  = weightedSum + futureGrade * futureWeight;
+                const newTotalWeight  = totalWeight + futureWeight;
+                const resultingAverage = newWeightedSum / newTotalWeight;
+
+                if (resultingAverage >= requiredRealAverage) {
+                    result.textContent = `With this grade you reach a final ${desiredAverage} — projected average ${resultingAverage.toFixed(2)}.`;
+                } else {
+                    result.textContent = `Projected average ${resultingAverage.toFixed(2)} — insufficient for final ${desiredAverage}.`;
+                }
+            });
         });
 
-        const averageCell = table.querySelector(".average");
-        const currentAverage = totalWeight > 0 ? weightedSum / totalWeight : null;
-        averageCell.textContent = currentAverage ? currentAverage.toFixed(2) : "N/A";
-
-      
-        const box = table.nextElementSibling;
-        if (!box || !box.classList.contains("predict-box")) return;
-
-        const button = box.querySelector(".predict-button");
-        const result = box.querySelector(".prediction-result");
-
-        button.addEventListener("click", () => {
-            const desiredAverage = parseFloat(
-                box.querySelector(".desired-average").value
-            );
-            const futureGrade = parseFloat(
-                box.querySelector(".future-grade").value
-            );
-            const futureWeight = parseFloat(
-                box.querySelector(".future-weight").value
-            );
-
-            if (
-                isNaN(desiredAverage) ||
-                isNaN(futureGrade) ||
-                isNaN(futureWeight) ||
-                !currentAverage
-            ) {
-                result.textContent = "Please fill all fields.";
-                return;
-            }
-
-        
-            const requiredRealAverage = Math.max(desiredAverage - 0.5, 1);
-
-            const newWeightedSum =
-                weightedSum + futureGrade * futureWeight;
-            const newTotalWeight =
-                totalWeight + futureWeight;
-
-            const resultingAverage =
-                newWeightedSum / newTotalWeight;
-
-            if (resultingAverage >= requiredRealAverage) {
-                result.textContent =
-                    `✅ With this grade, you'll reach a final ${desiredAverage} (real avg ${resultingAverage.toFixed(2)})`;
-            } else {
-                result.textContent =
-                    `❌ This gives ${resultingAverage.toFixed(2)} — not enough for final ${desiredAverage}`;
-            }
-        });
     });
+    </script>
 
-});
-</script>
-
-
-{% endblock %}
+</body>
+</html>
